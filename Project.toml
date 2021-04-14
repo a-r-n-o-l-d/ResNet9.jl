@@ -1,0 +1,13 @@
+name = "ResNet9"
+uuid = "1fd61c80-7e4f-4127-96a4-58f2c3b3733d"
+authors = ["Arnold"]
+version = "0.1.0"
+
+[compat]
+julia = "1.6"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
