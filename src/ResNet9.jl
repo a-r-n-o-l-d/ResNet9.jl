@@ -7,9 +7,7 @@ export resnet9
 
 function convblock(f::Pair; pool = false)
     _, out = f
-    w = convfilter((3,3), f)
-    b = Zeros()
-    cv = Conv(w, b, identity, pad = (1,1))
+    cv = Conv((3, 3), f, identity, pad = (1, 1), bias = false)
     bn =  BatchNorm(out, relu)
     pool && return cv, bn, MaxPool((2, 2))
     cv, bn
