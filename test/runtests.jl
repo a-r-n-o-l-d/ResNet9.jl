@@ -4,7 +4,7 @@ using Flux
 using CUDA
 
 if CUDA.has_cuda_gpu()
-    #CUDA.allowscalar(false)
+    CUDA.allowscalar(false)
     device = gpu
 else
     device = cpu
