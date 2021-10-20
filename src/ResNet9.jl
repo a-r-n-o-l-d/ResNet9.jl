@@ -36,7 +36,7 @@ function resnet9(;inchannels, nclasses, basewidth = 64) # dropout, groupnorm, bs
           convblock(ch1=>ch2, pool = true)..., resblock(ch2), # Layer 1
           convblock(ch2=>ch3, pool = true)...,                # Layer 2
           convblock(ch3=>ch4, pool = true)..., resblock(ch4), # Layer 3
-          classifier(ch4, nclasses)...)                           # Classifier
+          classifier(ch4, nclasses)...)                       # Classifier
 end
 
 end
