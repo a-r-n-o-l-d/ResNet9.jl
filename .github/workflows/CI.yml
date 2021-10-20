@@ -1,7 +1,10 @@
 name: CI
 on:
-  - push
-  - pull_request
+  push:
+    branches:
+      - main
+    tags: '*'
+  pull_request:
 jobs:
   test:
     name: Julia ${{ matrix.version }} - ${{ matrix.os }} - ${{ matrix.arch }} - ${{ github.event_name }}
@@ -39,3 +42,22 @@ jobs:
       - uses: codecov/codecov-action@v1
         with:
           file: lcov.info
+  docs:
+    name: Documentation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: julia-actions/setup-julia@v1
+        with:
+          version: '1'
+      - uses: julia-actions/julia-buildpkg@v1
+      - uses: julia-actions/julia-docdeploy@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DOCUMENTER_KEY: ${{ secrets.DOCUMENTER_KEY }}
+      - run: |
+          julia --project=docs -e '
+            using Documenter: DocMeta, doctest
+            using ResNet9
+            DocMeta.setdocmeta!(ResNet9, :DocTestSetup, :(using ResNet9); recursive=true)
+            doctest(ResNet9)'
