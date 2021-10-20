@@ -25,13 +25,20 @@ function classifier(ch, nc)
 end
 
 """
-    resnet9(;inchannels, nout, basewidth = 64)
+    resnet9(;inchannels, nclasses, basewidth = 64, expansion = 2)
+Build a ResNet9 network.
+* inchannels: number of input channels.
+* nclasses: number of classes, if `nclasses` = 2 the network ends with a fully
+  connected layer with a sigmoid activation function, otherwise it ends with a 
+  fully connected layer followed by a sftmax function.
+* basewidth: base number of channels.
+* expansion: factor of channels expansion.
 """
-function resnet9(;inchannels, nclasses, basewidth = 64) # dropout, groupnorm, bson file resnet9! expansion
+function resnet9(;inchannels, nclasses, basewidth = 64, expansion = 2) # dropout, groupnorm, bson file resnet9! expansion
     ch1 = basewidth
-    ch2 = 2 * ch1
-    ch3 = 2 * ch2
-    ch4 = 2 * ch3
+    ch2 = expansion * ch1
+    ch3 = expansion * ch2
+    ch4 = expansion * ch3
     Chain(convblock(inchannels=>ch1)...,                      # Input layer
           convblock(ch1=>ch2, pool = true)..., resblock(ch2), # Layer 1
           convblock(ch2=>ch3, pool = true)...,                # Layer 2
