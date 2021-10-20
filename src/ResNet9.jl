@@ -17,17 +17,17 @@ convblock(ch::Int) = convblock(ch=>ch)
 
 resblock(ch) = SkipConnection(Chain(convblock(ch)..., convblock(ch)...), +)
 
-function classifier(ch, no)
-    flat = (GlobalMaxPool(), Flux.flatten)
+function classifier(ch, nc)
+    fl = (GlobalMaxPool(), Flux.flatten)
     #n > 1 && return fl..., Dense(f, n), softmax
-    final = (no > 1) ? [Dense(ch, no), softmax] : [Dense(ch, 1, sigmoid)]
-    flat..., final...
+    fc = (nc > 2) ? [Dense(ch, nc), softmax] : [Dense(ch, 1, sigmoid)]
+    fl..., fc...
 end
 
 """
     resnet9(;inchannels, nout, basewidth = 64)
 """
-function resnet9(;inchannels, nout, basewidth = 64) # dropout, groupnorm, bson file resnet9! expansion
+function resnet9(;inchannels, nclasses, basewidth = 64) # dropout, groupnorm, bson file resnet9! expansion
     ch1 = basewidth
     ch2 = 2 * ch1
     ch3 = 2 * ch2
@@ -36,7 +36,7 @@ function resnet9(;inchannels, nout, basewidth = 64) # dropout, groupnorm, bson f
           convblock(ch1=>ch2, pool = true)..., resblock(ch2), # Layer 1
           convblock(ch2=>ch3, pool = true)...,                # Layer 2
           convblock(ch3=>ch4, pool = true)..., resblock(ch4), # Layer 3
-          classifier(ch4, nout)...)                           # Classifier
+          classifier(ch4, nclasses)...)                           # Classifier
 end
 
 end
