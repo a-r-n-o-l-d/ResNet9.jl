@@ -20,5 +20,4 @@ makedocs(;
 
 deploydocs(;
     repo="github.com/a-r-n-o-l-d/ResNet9.jl",
-    devbranch="main",
 )
