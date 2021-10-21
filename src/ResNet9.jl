@@ -3,7 +3,7 @@ module ResNet9
 using Flux
 using Flux: convfilter, Zeros
 
-export resnet9
+export resnet9, resnet9!
 
 function convblock(chs::Pair; pool = false)
     _, out = chs
@@ -17,10 +17,14 @@ convblock(ch::Int) = convblock(ch=>ch)
 
 resblock(ch) = SkipConnection(Chain(convblock(ch)..., convblock(ch)...), +)
 
-function classifier(ch, nc)
-    fl = (GlobalMaxPool(), Flux.flatten)
-    #n > 1 && return fl..., Dense(f, n), softmax
-    fc = (nc > 2) ? [Dense(ch, nc), softmax] : [Dense(ch, 1, sigmoid)]
+function classifier(ch, nc, drp)
+    fl = [GlobalMaxPool(), Flux.flatten]
+    fc = []
+    if drp > 0
+         push!(fc, Dropout(drp))
+    end
+    (nc > 2) ? push!(fc, Dense(ch, nc), softmax) : push!(fc, Dense(ch, 1, sigmoid))
+    #fc = (nc > 2) ? [Dense(ch, nc), softmax] : [Dense(ch, 1, sigmoid)]
     fl..., fc...
 end
 
@@ -30,11 +34,11 @@ Build a ResNet9 network.
 * inchannels: number of input channels.
 * nclasses: number of classes, if `nclasses` = 2 the network ends with a fully
   connected layer with a sigmoid activation function, otherwise it ends with a 
-  fully connected layer followed by a sftmax function.
+  fully connected layer followed by a softmax function.
 * basewidth: base number of channels.
 * expansion: factor of channels expansion.
 """
-function resnet9(;inchannels, nclasses, basewidth = 64, expansion = 2) # dropout, groupnorm, bson file resnet9! expansion
+function resnet9(;inchannels, nclasses, dropout = 0, basewidth = 64, expansion = 2) # dropout, groupnorm, bson file resnet9! expansion
     ch1 = basewidth
     ch2 = expansion * ch1
     ch3 = expansion * ch2
@@ -43,7 +47,11 @@ function resnet9(;inchannels, nclasses, basewidth = 64, expansion = 2) # dropout
           convblock(ch1=>ch2, pool = true)..., resblock(ch2), # Layer 1
           convblock(ch2=>ch3, pool = true)...,                # Layer 2
           convblock(ch3=>ch4, pool = true)..., resblock(ch4), # Layer 3
-          classifier(ch4, nclasses)...)                       # Classifier
+          classifier(ch4, nclasses, dropout)...)              # Classifier
+end
+
+function resnet9!(model::Chain; nclasses)
+
 end
 
 end
