@@ -2,8 +2,9 @@ module ResNet9
 
 using Flux
 using Flux: convfilter, Zeros
+using Base.Iterators: takewhile
 
-export resnet9, resnet9!
+export resnet9
 
 function convblock(chs::Pair; pool = false)
     _, out = chs
@@ -38,7 +39,7 @@ Build a ResNet9 network.
 * basewidth: base number of channels.
 * expansion: factor of channels expansion.
 """
-function resnet9(;inchannels, nclasses, dropout = 0, basewidth = 64, expansion = 2) # dropout, groupnorm, bson file resnet9! expansion
+function resnet9(;inchannels, nclasses, dropout = 0, basewidth = 64, expansion = 2) # groupnorm
     ch1 = basewidth
     ch2 = expansion * ch1
     ch3 = expansion * ch2
@@ -50,8 +51,45 @@ function resnet9(;inchannels, nclasses, dropout = 0, basewidth = 64, expansion =
           classifier(ch4, nclasses, dropout)...)              # Classifier
 end
 
-function resnet9!(model::Chain; nclasses)
+"""
+    resnet9(model::Chain; nclasses, dropout)
+Build a ResNet9 model from an existing (pre-trained) model and change the last
+layers according to `nclasses` and `dropout`.
+"""
+function resnet9(model::Chain; nclasses, dropout)
+    back = takewhile(l -> !isa(l, GlobalMaxPool), model) |> collect
+    ch = nchout(model)
+    front = classifier(ch, nclasses, dropout)
+    Chain(back..., front...)
+end
 
+"""
+    resnet9(model::Chain; nclasses, dropout)
+Build a ResNet9 model from an existing (pre-trained) model and change the first
+layer according to `inchannels`.
+"""
+function resnet9(model::Chain; inchannels)
+    ch = nchout(model[1:2])
+    Chain(convblock(inchannels=>ch)..., model[3:end]...)
+end
+
+nchout(l) = 0
+nchout(l::Conv) = size(l.weight, ndims(l.weight))
+nchout(l::BatchNorm) = l.chs
+nchout(l::SkipConnection) = nchout(l.layers)
+function nchout(c::Chain)
+    layers = [c...] |> reverse
+    nch = 0
+    for l ∈ layers
+        nch = nchout(l)
+        if nch > 0
+            break
+        end
+    end
+    if nch == 0
+        error("Failed to find number of channels.") |> throw
+    end
+    nch
 end
 
 end
