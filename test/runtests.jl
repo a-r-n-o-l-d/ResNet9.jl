@@ -38,5 +38,9 @@ end
         model2 = resnet9(model, inchannels = 2 * inchs) |> device
         ŷ = model2(x2)
         @test size(ŷ) == (5, batchsize)
+        # Change the number of input channels
+        model2 = resnet9(model, dropout = 0.2) |> device
+        ŷ = model2(x1)
+        @test size(ŷ) == (5, batchsize)
     end
 end

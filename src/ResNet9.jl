@@ -53,7 +53,7 @@ function resnet9(;inchannels, nclasses, dropout = 0, basewidth = 64, expansion =
 end
 
 """
-    resnet9(model::Chain; nclasses, dropout)
+    resnet9(model::Chain; inchannels, nclasses, dropout)
 Build a ResNet9 model from an existing (pre-trained) model and change the first 
 or last layers according to `inchannels`, `nclasses` and `dropout`.
 """
